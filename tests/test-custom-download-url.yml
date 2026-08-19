@@ -1,0 +1,30 @@
+name: Test custom download URL
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          version: "3.3.2"
+          download-url: "https://github.com/argoproj/argo-cd/releases/download/v3.3.2/argocd-linux-amd64"
+      - name: Assert argocd is installed and executable
+        run: |
+          if ! command -v argocd >/dev/null 2>&1; then
+            echo "FAIL: argocd binary not found on PATH"
+            exit 1
+          fi
+          echo "PASS: argocd is installed"
+      - name: Assert argocd version output
+        run: |
+          VERSION_OUTPUT=$(argocd version --client 2>&1 || true)
+          echo "version output: $VERSION_OUTPUT"
+          if echo "$VERSION_OUTPUT" | grep -qi "argocd"; then
+            echo "PASS: argocd version output contains expected text"
+          else
+            echo "FAIL: unexpected version output: $VERSION_OUTPUT"
+            exit 1
+          fi

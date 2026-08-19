@@ -1,0 +1,36 @@
+name: Test ArgoCD CLI install only (no command)
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        # No command or options — just install the CLI
+      - name: Assert argocd binary is available after install
+        run: |
+          if ! command -v argocd >/dev/null 2>&1; then
+            echo "FAIL: argocd binary not found on PATH after install"
+            exit 1
+          fi
+          ARGOCD_PATH=$(command -v argocd)
+          echo "PASS: argocd binary found at $ARGOCD_PATH"
+      - name: Assert argocd binary is executable
+        run: |
+          ARGOCD_PATH=$(command -v argocd)
+          if [ ! -x "$ARGOCD_PATH" ]; then
+            echo "FAIL: argocd binary is not executable"
+            exit 1
+          fi
+          echo "PASS: argocd binary is executable"
+      - name: Assert argocd version output
+        run: |
+          VERSION_OUTPUT=$(argocd version --client 2>&1)
+          echo "version output: $VERSION_OUTPUT"
+          if ! echo "$VERSION_OUTPUT" | grep -qi "argocd"; then
+            echo "FAIL: argocd version output does not mention argocd"
+            exit 1
+          fi
+          echo "PASS: argocd version output is valid"
