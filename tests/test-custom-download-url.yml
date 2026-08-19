@@ -1,0 +1,29 @@
+name: Test custom download URL
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          version: "3.3.2"
+          download-url: "https://github.com/argoproj/argo-cd/releases/download/v3.3.2/argocd-linux-amd64"
+          command: version
+          options: "--client"
+      - name: Assert output contains version
+        env:
+          ACTUAL: ${{ steps.action.outputs.output }}
+        run: |
+          echo "actual: $ACTUAL"
+          if [ -z "$ACTUAL" ]; then
+            echo "FAIL: expected output to be non-empty"
+            exit 1
+          fi
+          if ! echo "$ACTUAL" | grep -qi "argocd"; then
+            echo "FAIL: expected output to contain 'argocd'"
+            exit 1
+          fi
+          echo "PASS"

@@ -1,0 +1,31 @@
+name: Test ArgoCD CLI help command
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Run argocd help command
+        id: action
+        uses: .
+        with:
+          command: help
+
+      - name: Assert output contains help text
+        env:
+          ACTUAL: ${{ steps.action.outputs.output }}
+        run: |
+          echo "actual output: '$ACTUAL'"
+          if [ -z "$ACTUAL" ]; then
+            echo "FAIL: expected non-empty output from help command"
+            exit 1
+          fi
+          # ArgoCD help output should mention common subcommands
+          if ! echo "$ACTUAL" | grep -qi "argocd"; then
+            echo "FAIL: expected help output to mention 'argocd', got: $ACTUAL"
+            exit 1
+          fi
+          echo "PASS: help output contains expected content"
