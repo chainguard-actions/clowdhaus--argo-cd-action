@@ -1,4 +1,4 @@
-name: Test basic usage - default version
+name: Test custom version installation
 on:
   workflow_dispatch:
 jobs:
@@ -9,9 +9,10 @@ jobs:
       - id: action
         uses: .
         with:
+          version: 2.13.3
           command: version
           options: --client
-      - name: Assert output contains version info
+      - name: Assert output contains expected version
         env:
           ACTUAL: ${{ steps.action.outputs.output }}
         run: |
@@ -20,8 +21,8 @@ jobs:
             echo "FAIL: output is empty"
             exit 1
           fi
-          if ! echo "$ACTUAL" | grep -qi "argocd\|version\|BuildDate\|GitCommit\|v3"; then
-            echo "FAIL: output does not look like ArgoCD version info"
+          if ! echo "$ACTUAL" | grep -q "2.13.3"; then
+            echo "FAIL: expected version 2.13.3 in output, got: $ACTUAL"
             exit 1
           fi
-          echo "PASS: got version output"
+          echo "PASS: correct version installed"

@@ -1,4 +1,4 @@
-name: Test basic usage - default version
+name: Test custom download URL
 on:
   workflow_dispatch:
 jobs:
@@ -9,9 +9,11 @@ jobs:
       - id: action
         uses: .
         with:
+          version: 2.12.0
+          download-url: https://github.com/argoproj/argo-cd/releases/download/v2.12.0/argocd-linux-amd64
           command: version
           options: --client
-      - name: Assert output contains version info
+      - name: Assert output contains version from custom URL
         env:
           ACTUAL: ${{ steps.action.outputs.output }}
         run: |
@@ -20,8 +22,8 @@ jobs:
             echo "FAIL: output is empty"
             exit 1
           fi
-          if ! echo "$ACTUAL" | grep -qi "argocd\|version\|BuildDate\|GitCommit\|v3"; then
+          if ! echo "$ACTUAL" | grep -qi "argocd\|version\|BuildDate\|GitCommit\|v2"; then
             echo "FAIL: output does not look like ArgoCD version info"
             exit 1
           fi
-          echo "PASS: got version output"
+          echo "PASS: custom download URL worked, got version output"
