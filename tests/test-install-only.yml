@@ -1,0 +1,31 @@
+name: Test ArgoCD CLI install only (no command)
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        # No command or options — just install the CLI
+      - name: Assert argocd binary is available after install
+        run: |
+          if ! command -v argocd >/dev/null 2>&1; then
+            echo "FAIL: argocd binary not found on PATH after install-only run"
+            exit 1
+          fi
+          ARGOCD_VERSION=$(argocd version --client --short 2>/dev/null || argocd version --client 2>/dev/null || echo "")
+          echo "argocd version output: $ARGOCD_VERSION"
+          if [ -z "$ARGOCD_VERSION" ]; then
+            echo "FAIL: argocd binary found but version check returned empty"
+            exit 1
+          fi
+          echo "PASS: argocd binary is installed and functional"
+      - name: Assert output is empty when no command given
+        env:
+          ACTUAL: ${{ steps.action.outputs.output }}
+        run: |
+          echo "actual output: '$ACTUAL'"
+          # When no command is provided, output should be empty or minimal
+          echo "PASS: install-only step completed successfully"

@@ -1,0 +1,28 @@
+name: Test ArgoCD CLI install with custom version
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          version: "2.12.0"
+          command: version
+          options: --client
+      - name: Assert output contains expected version
+        env:
+          ACTUAL: ${{ steps.action.outputs.output }}
+        run: |
+          echo "actual: $ACTUAL"
+          if [ -z "$ACTUAL" ]; then
+            echo "FAIL: output is empty"
+            exit 1
+          fi
+          if ! echo "$ACTUAL" | grep -q "2.12.0"; then
+            echo "FAIL: output does not contain expected version '2.12.0'"
+            exit 1
+          fi
+          echo "PASS: output contains expected version 2.12.0"
