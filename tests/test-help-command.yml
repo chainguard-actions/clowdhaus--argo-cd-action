@@ -1,0 +1,27 @@
+name: Test help command with options
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          command: help
+      - name: Assert argocd help command succeeded
+        run: |
+          echo "Checking argocd CLI is available after help command..."
+          if ! command -v argocd &>/dev/null; then
+            echo "FAIL: argocd CLI not found in PATH"
+            exit 1
+          fi
+          HELP_OUTPUT=$(argocd help 2>&1)
+          echo "Help output: $HELP_OUTPUT"
+          if echo "$HELP_OUTPUT" | grep -qi "argocd"; then
+            echo "PASS: argocd help command executed successfully"
+          else
+            echo "FAIL: unexpected help output"
+            exit 1
+          fi

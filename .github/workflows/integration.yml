@@ -1,0 +1,88 @@
+name: integration
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/**'
+      - 'dist/**'
+      - 'src/**'
+      - 'action.yml'
+      - 'yarn.lock'
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/**'
+      - 'dist/**'
+      - 'src/**'
+      - 'action.yml'
+      - 'yarn.lock'
+
+permissions: {}
+
+jobs:
+  no-auth:
+    name: Download w/o auth
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+
+      - name: Show version
+        uses: ./
+        with:
+          command: version
+          options: --client
+
+      - name: Check install - should not re-download
+        uses: ./
+
+  with-auth:
+    name: Download with auth
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+
+      - name: Show version
+        uses: ./
+        env:
+          # Only required for first step in workflow where API is called
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          command: version
+          options: --client
+
+      - name: Check install - should not re-download
+        uses: ./
+
+      - name: This should work too
+        run: |
+          argocd version --client
+
+  set-version:
+    name: Set version
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+
+      - name: Show version
+        uses: ./
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          version: 2.4.18
+          command: version
+          options: --client

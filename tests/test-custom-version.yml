@@ -1,0 +1,27 @@
+name: Test custom version installation
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          version: 3.0.0
+      - name: Assert argocd CLI version matches requested
+        run: |
+          echo "Checking argocd CLI version..."
+          if ! command -v argocd &>/dev/null; then
+            echo "FAIL: argocd CLI not found in PATH"
+            exit 1
+          fi
+          VERSION_OUTPUT=$(argocd version --client 2>&1)
+          echo "Version output: $VERSION_OUTPUT"
+          if echo "$VERSION_OUTPUT" | grep -q "v3.0.0"; then
+            echo "PASS: argocd CLI version is v3.0.0"
+          else
+            echo "FAIL: expected version v3.0.0 not found in output"
+            exit 1
+          fi

@@ -1,0 +1,28 @@
+name: Test command execution via action input
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          command: version
+          options: --client
+      - name: Assert command executed successfully
+        run: |
+          echo "Checking argocd CLI is available after command execution..."
+          if ! command -v argocd &>/dev/null; then
+            echo "FAIL: argocd CLI not found in PATH"
+            exit 1
+          fi
+          VERSION_OUTPUT=$(argocd version --client 2>&1)
+          echo "Version output: $VERSION_OUTPUT"
+          if echo "$VERSION_OUTPUT" | grep -q "argocd"; then
+            echo "PASS: argocd version command executed successfully"
+          else
+            echo "FAIL: unexpected version output"
+            exit 1
+          fi
